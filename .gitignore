@@ -1,0 +1,32 @@
+# Git
+.git/
+
+# Cloned repository (legacy, no longer used with multi-stage build)
+shardingsphere-elasticjob-ui/
+
+# Build artifacts
+target/
+build/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+tmp/
+
+# Node
+node_modules/
+npm-debug.log*

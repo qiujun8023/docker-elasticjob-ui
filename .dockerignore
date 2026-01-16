@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# GitHub
+.github/ISSUE_TEMPLATE
+.github/PULL_REQUEST_TEMPLATE
+
+# IDE
+.idea
+.vscode
+*.iml
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Build artifacts (from cloned repo if any)
+shardingsphere-elasticjob-ui/
+target/
+build/
+dist/
+out/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Documentation (not needed in build context)
+*.md
+!README.md
+docs/
+
+# Env files
+.env
+.env.local
