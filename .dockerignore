@@ -4,8 +4,7 @@
 .gitattributes
 
 # GitHub
-.github/ISSUE_TEMPLATE
-.github/PULL_REQUEST_TEMPLATE
+.github
 
 # IDE
 .idea
@@ -17,12 +16,20 @@
 # macOS
 .DS_Store
 
-# Build artifacts (from cloned repo if any)
+# Source code directory (if cloned locally)
 shardingsphere-elasticjob-ui/
+
+# Build artifacts
 target/
 build/
 dist/
 out/
+
+# Maven
+pom.xml
+.mvn/
+mvnw
+mvnw.cmd
 
 # Logs
 *.log
@@ -34,15 +41,20 @@ logs/
 tmp/
 temp/
 
-# Node modules
+# Node modules (from source build)
 node_modules/
 npm-debug.log*
+package.json
+package-lock.json
 
-# Documentation (not needed in build context)
+# Documentation
 *.md
-!README.md
 docs/
 
 # Env files
 .env
 .env.local
+
+# Downloaded source tarballs
+*.tar.gz
+*.zip

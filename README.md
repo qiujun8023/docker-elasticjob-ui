@@ -13,16 +13,15 @@ ElasticJob UI 是 [Apache ShardingSphere ElasticJob](https://shardingsphere.apac
 
 ## 功能特性
 
-- ✅ **多阶段构建**: 在 Dockerfile 中完成源码下载、编译和镜像构建
-- ✅ **统一 Dockerfile**: 通过 build args 区分 lite 和 cloud 版本
+- ✅ **独立 Dockerfile**: lite 和 cloud 版本各自独立，简洁清晰
 - ✅ **自动获取最新版本**: 通过 GitHub API 获取最新 release
-- ✅ **高效源码下载**: 直接下载 tarball，无需克隆完整仓库
-- ✅ **现代基础镜像**: 使用 eclipse-temurin:8 替代废弃的 openjdk
+- ✅ **高效构建流程**: GitHub Actions 编译一次，构建两个镜像
+- ✅ **现代基础镜像**: 使用 eclipse-temurin:8-jre
 - ✅ **安全运行**: 使用非 root 用户 (UID 1000) 运行容器
 - ✅ **优化 JVM 参数**: 简化的 JAVA_OPTS，使用 G1GC
 - ✅ **支持多架构**: 自动构建 amd64/arm64 镜像
-- ✅ **构建缓存**: GitHub Actions 缓存加速构建
-- ✅ **本地构建支持**: 多阶段构建允许本地轻松构建镜像
+- ✅ **Maven 依赖缓存**: GitHub Actions 缓存加速构建
+- ✅ **正确的信号处理**: Java 进程作为 PID 1，正确响应 docker stop
 
 ## 使用方法
 
@@ -70,23 +69,7 @@ docker run -d \
 docker compose up -d
 ```
 
-### 2. 本地构建镜像
-
-得益于多阶段构建，你可以在本地轻松构建镜像：
-
-```bash
-# 构建 Lite UI（最新版本）
-docker build \
-  --build-arg UI_TYPE=lite \
-  -t elasticjob-ui:lite-latest .
-
-# 构建 Cloud UI（最新版本）
-docker build \
-  --build-arg UI_TYPE=cloud \
-  -t elasticjob-ui:cloud-latest .
-```
-
-### 3. 使用 GitHub Actions 构建
+### 2. 使用 GitHub Actions 构建
 
 #### 配置 GitHub Secrets
 
@@ -108,7 +91,7 @@ docker build \
 - `<your-username>/elasticjob-ui:cloud-<version>` - Cloud UI 指定版本
 - `<your-username>/elasticjob-ui:cloud-latest` - Cloud UI 最新版本
 
-### 4. 访问 UI
+### 3. 访问 UI
 
 浏览器访问: `http://localhost:8088`
 
@@ -136,7 +119,8 @@ docker-elasticjob-ui/
 ├── .github/
 │   └── workflows/
 │       └── build-docker.yml    # GitHub Actions 工作流配置
-├── Dockerfile                  # 多阶段构建 Dockerfile（支持 lite 和 cloud）
+├── Dockerfile.lite            # Lite UI 镜像构建文件
+├── Dockerfile.cloud           # Cloud UI 镜像构建文件
 ├── docker-compose.yml          # Docker Compose 配置
 ├── .dockerignore              # Docker 构建忽略文件
 ├── .gitignore                 # Git 忽略文件
@@ -145,56 +129,72 @@ docker-elasticjob-ui/
 
 ## 构建流程
 
-### 本地构建流程
+### GitHub Actions 自动化流程
 
-1. **下载源码**: 通过 wget 直接下载指定版本的源码 tarball
-2. **设置环境**: Dockerfile 构建阶段包含 JDK 8、Node.js 和 Maven
-3. **编译构建**: 使用 Maven 执行 `mvn clean package -Prelease -DskipTests`
-4. **提取产物**: 解压编译生成的 tar.gz 文件
-5. **构建运行镜像**: 复制编译产物到精简的 JRE 镜像
-6. **设置权限**: 创建非 root 用户并设置文件权限
+#### Job 1: 编译构建产物 (build-artifacts)
 
-### GitHub Actions 流程
+1. **获取版本**: 通过 GitHub API 获取最新 tag
+2. **下载源码**: 下载对应版本的源码 tarball
+3. **设置环境**: 配置 JDK 8 和 Node.js 14
+4. **Maven 编译**: 执行 `mvn clean package -Prelease -DskipTests`
+5. **提取产物**: 分别提取 lite-ui 和 cloud-ui 的编译产物
+6. **上传 Artifacts**: 将产物上传供下一个 Job 使用
 
-1. **检出代码**: 克隆本仓库
+#### Job 2: 构建镜像 (build-and-push)
+
+1. **下载产物**: 从上一个 Job 下载编译好的产物
 2. **设置 Buildx**: 配置 Docker 多架构构建
 3. **登录 Docker Hub**: 使用 secrets 认证
-4. **获取版本**: 通过 GitHub API 获取最新 tag
-5. **并行构建**: 使用 matrix 策略同时构建 lite 和 cloud
-6. **推送镜像**: 推送到 Docker Hub，包含版本号和 latest 标签
-7. **生成摘要**: 输出构建结果和拉取命令
+4. **并行构建**: 使用 matrix 策略同时构建 lite 和 cloud
+5. **推送镜像**: 推送到 Docker Hub，包含版本号和 latest 标签
+6. **生成摘要**: 输出构建结果和拉取命令
+
+**优势：**
+- 编译只需一次，提高效率
+- Dockerfile 简单清晰，易于维护
+- Java 进程作为 PID 1，正确处理信号
+- 支持多架构（amd64 和 arm64）
 
 ## 技术栈
 
 - **后端**: Spring Boot
 - **前端**: Vue.js + Element UI
 - **构建工具**: Maven + Node.js
-- **基础镜像**:
-  - 构建阶段: eclipse-temurin:8-jdk
-  - 运行阶段: eclipse-temurin:8-jre
+- **基础镜像**: eclipse-temurin:8-jre
 - **CI/CD**: GitHub Actions
 
 ## 优化特性
 
-### 1. 多阶段构建
-- **优势**: 最终镜像体积小，不包含构建工具
-- **本地友好**: 无需预先安装 JDK、Maven、Node.js
+### 1. 独立 Dockerfile
+- **简洁清晰**: 每个 Dockerfile 只有约 40 行
+- **无变量混淆**: 不依赖构建参数或环境变量
+- **易于维护**: 两个文件几乎完全一样，只有启动命令不同
 
-### 2. 非 root 用户
+### 2. 高效构建流程
+- **编译一次**: Maven 一次编译生成所有产物
+- **并行构建**: 两个镜像同时构建
+- **GitHub Actions Artifacts**: 产物在 Jobs 间传递
+
+### 3. 非 root 用户
 - **安全性**: 以 UID 1000 运行，降低安全风险
 - **最佳实践**: 符合容器安全规范
 
-### 3. 简化的 JVM 参数
+### 4. 简化的 JVM 参数
 - **合理默认值**: 512MB 堆内存适合大多数场景
 - **现代 GC**: 使用 G1GC 替代废弃的 CMS
 - **易于调整**: 通过环境变量覆盖
 
-### 4. 高效构建
-- **GitHub Actions 缓存**: 自动缓存 Docker 构建层
-- **并行构建**: 同时构建 lite 和 cloud 版本
-- **增量下载**: 仅下载必要的源码 tarball
+### 5. 正确的信号处理
+- **Java 作为 PID 1**: 使用 `exec` 确保 Java 进程成为 PID 1
+- **优雅停机**: 正确响应 docker stop 的 SIGTERM 信号
+- **无僵尸进程**: 不会产生孤儿进程
 
-### 5. 健康检查
+### 6. 高效构建缓存
+- **Maven 依赖缓存**: 缓存 ~/.m2/repository 加速编译
+- **Docker 层缓存**: GitHub Actions 自动缓存构建层
+- **并行构建**: 同时构建 lite 和 cloud 版本
+
+### 7. 健康检查
 - 检查间隔: 30秒
 - 超时时间: 3秒
 - 启动等待: 40秒
@@ -230,17 +230,12 @@ docker run -d --name elasticjob-lite-ui -p 9999:8088 <image>
 
 ## 故障排查
 
-### 构建失败
+### 构建失败 (GitHub Actions)
 
-**本地构建失败**:
-- 检查网络连接（需要下载 Maven 依赖）
-- 确认 Docker 有足够的内存和磁盘空间
-- 查看构建日志中的错误信息
-
-**GitHub Actions 失败**:
 - 检查 Maven 依赖下载是否正常
 - 查看 Actions 日志获取详细错误信息
 - 验证 GitHub API 调用是否成功
+- 确认编译产物提取路径是否正确
 
 ### 镜像推送失败
 
@@ -280,16 +275,16 @@ ElasticJob UI 是 Apache ShardingSphere 的一部分，遵循 Apache License 2.0
 
 ## 更新日志
 
-### v2.0.0 (2024)
-- ✅ 重构为多阶段构建
-- ✅ 合并 Dockerfile，使用 build args 区分版本
+### v2.0.0 (2026)
+- ✅ 重构为 GitHub Actions 编译 + 简单 Dockerfile
+- ✅ 拆分为 Dockerfile.lite 和 Dockerfile.cloud
+- ✅ Java 进程作为 PID 1，正确处理信号
 - ✅ 添加非 root 用户支持
 - ✅ 简化 JAVA_OPTS 配置
 - ✅ 更新为 eclipse-temurin 基础镜像
-- ✅ 优化源码下载方式
-- ✅ 添加 GitHub Actions 缓存
-- ✅ 支持本地构建
-- ✅ 简化 docker-compose 配置
+- ✅ 优化构建流程：编译一次，构建两次
+- ✅ 添加 Maven 依赖缓存
+- ✅ 移除本地构建能力（专注 CI/CD）
 
 ### v1.0.0
 - 初始版本

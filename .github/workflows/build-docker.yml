@@ -1,4 +1,4 @@
-name: Build ElasticJob UI Docker Image
+name: Build ElasticJob UI Docker Images
 
 on:
   workflow_dispatch:
@@ -8,7 +8,80 @@ env:
   IMAGE_NAME: elasticjob-ui
 
 jobs:
+  build-artifacts:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.tag }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get latest ElasticJob UI version
+        id: version
+        run: |
+          LATEST_TAG=$(curl -s https://api.github.com/repos/apache/shardingsphere-elasticjob-ui/releases/latest | jq -r '.tag_name')
+          echo "Latest version: $LATEST_TAG"
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Download ElasticJob UI source code
+        run: |
+          LATEST_TAG=${{ steps.version.outputs.tag }}
+          echo "Downloading version: $LATEST_TAG"
+          wget -q "https://github.com/apache/shardingsphere-elasticjob-ui/archive/refs/tags/${LATEST_TAG}.tar.gz"
+          tar -xzf "${LATEST_TAG}.tar.gz" --strip-components=1
+          rm "${LATEST_TAG}.tar.gz"
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '14'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        run: mvn clean package -Prelease -DskipTests -Dmaven.javadoc.skip=true -q
+
+      - name: Extract Lite UI artifacts
+        run: |
+          cd shardingsphere-elasticjob-ui-distribution/shardingsphere-elasticjob-lite-ui-bin-distribution/target
+          tar -xzf apache-shardingsphere-*-shardingsphere-elasticjob-lite-ui-bin.tar.gz
+          mv apache-shardingsphere-*-shardingsphere-elasticjob-lite-ui-bin ../../../elasticjob-lite-ui
+
+      - name: Extract Cloud UI artifacts
+        run: |
+          cd shardingsphere-elasticjob-ui-distribution/shardingsphere-elasticjob-cloud-ui-bin-distribution/target
+          tar -xzf apache-shardingsphere-*-shardingsphere-elasticjob-cloud-ui-bin.tar.gz
+          mv apache-shardingsphere-*-shardingsphere-elasticjob-cloud-ui-bin ../../../elasticjob-cloud-ui
+
+      - name: Upload Lite UI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: elasticjob-lite-ui
+          path: elasticjob-lite-ui/
+          retention-days: 1
+
+      - name: Upload Cloud UI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: elasticjob-cloud-ui
+          path: elasticjob-cloud-ui/
+          retention-days: 1
+
   build-and-push:
+    needs: build-artifacts
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,6 +94,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download ${{ matrix.ui_type }} UI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: elasticjob-${{ matrix.ui_type }}-ui
+          path: elasticjob-${{ matrix.ui_type }}-ui/
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -30,29 +109,20 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Get latest ElasticJob UI version
-        id: version
-        run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/apache/shardingsphere-elasticjob-ui/releases/latest | jq -r '.tag_name')
-          echo "Latest version: $LATEST_TAG"
-          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-
       - name: Generate Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ matrix.ui_type }}-${{ steps.version.outputs.tag }}
+            type=raw,value=${{ matrix.ui_type }}-${{ needs.build-artifacts.outputs.version }}
             type=raw,value=${{ matrix.ui_type }}-latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
-          build-args: |
-            UI_TYPE=${{ matrix.ui_type }}
+          file: ./Dockerfile.${{ matrix.ui_type }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
@@ -64,9 +134,9 @@ jobs:
           echo "## 🚀 Build Summary - ${{ matrix.ui_type }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **UI Type**: ${{ matrix.ui_type }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.build-artifacts.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image Tags**:" >> $GITHUB_STEP_SUMMARY
-          echo "  - \`${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ matrix.ui_type }}-${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - \`${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ matrix.ui_type }}-${{ needs.build-artifacts.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
           echo "  - \`${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ matrix.ui_type }}-latest\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Pull Command" >> $GITHUB_STEP_SUMMARY

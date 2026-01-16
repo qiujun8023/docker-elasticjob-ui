@@ -1,0 +1,43 @@
+# Dockerfile for ElasticJob Lite UI
+# Build artifacts must be prepared by CI/CD pipeline before building this image
+
+FROM eclipse-temurin:8-jre
+
+# Metadata labels
+LABEL maintainer="ElasticJob UI" \
+      org.opencontainers.image.title="ElasticJob Lite UI" \
+      org.opencontainers.image.description="Management console for Apache ShardingSphere ElasticJob Lite" \
+      org.opencontainers.image.source="https://github.com/apache/shardingsphere-elasticjob-ui" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+# Install curl for health check
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -g 1000 elasticjob && \
+    useradd -u 1000 -g elasticjob -s /bin/bash -m elasticjob
+
+# Set working directory
+WORKDIR /opt/elasticjob-ui
+
+# Copy application artifacts (prepared by CI/CD)
+COPY --chown=elasticjob:elasticjob ./elasticjob-lite-ui/ ./
+
+# Switch to non-root user
+USER elasticjob
+
+# Set simplified JAVA_OPTS with reasonable defaults
+# Users can override via environment variable
+ENV JAVA_OPTS="-server -Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+
+# Expose default port
+EXPOSE 8088
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8088/ || exit 1
+
+# Start ElasticJob Lite UI (exec ensures Java becomes PID 1 and handles signals correctly)
+CMD exec java ${JAVA_OPTS} -classpath ".:conf:lib/*:ext-lib/*" org.apache.shardingsphere.elasticjob.lite.ui.Bootstrap
