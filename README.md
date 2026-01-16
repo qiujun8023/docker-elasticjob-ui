@@ -17,7 +17,7 @@ ElasticJob UI 是 [Apache ShardingSphere ElasticJob](https://shardingsphere.apac
 - ✅ **自动获取最新版本**: 通过 GitHub API 获取最新 release
 - ✅ **高效构建流程**: GitHub Actions 编译一次，构建两个镜像
 - ✅ **现代基础镜像**: 使用 eclipse-temurin:8-jre
-- ✅ **安全运行**: 使用非 root 用户 (UID 1000) 运行容器
+- ✅ **安全运行**: 使用非 root 用户运行容器
 - ✅ **优化 JVM 参数**: 简化的 JAVA_OPTS，使用 G1GC
 - ✅ **支持多架构**: 自动构建 amd64/arm64 镜像
 - ✅ **Maven 依赖缓存**: GitHub Actions 缓存加速构建
@@ -176,7 +176,7 @@ docker-elasticjob-ui/
 - **GitHub Actions Artifacts**: 产物在 Jobs 间传递
 
 ### 3. 非 root 用户
-- **安全性**: 以 UID 1000 运行，降低安全风险
+- **安全性**: 以非 root 用户运行，降低安全风险
 - **最佳实践**: 符合容器安全规范
 
 ### 4. 简化的 JVM 参数
@@ -222,7 +222,7 @@ docker run -d --name elasticjob-lite-ui -p 9999:8088 <image>
 
 ### Q: 容器以什么用户运行？
 
-容器以非 root 用户 `elasticjob` (UID 1000) 运行，提升安全性。
+容器以非 root 用户 `elasticjob` 运行，提升安全性。
 
 ### Q: 支持哪些架构？
 
