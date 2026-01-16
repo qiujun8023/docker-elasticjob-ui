@@ -170,8 +170,8 @@ docker-elasticjob-ui/
 - **前端**: Vue.js + Element UI
 - **构建工具**: Maven + Node.js
 - **基础镜像**:
-  - 构建阶段: eclipse-temurin:8-jdk-alpine
-  - 运行阶段: eclipse-temurin:8-jre-alpine
+  - 构建阶段: eclipse-temurin:8-jdk
+  - 运行阶段: eclipse-temurin:8-jre
 - **CI/CD**: GitHub Actions
 
 ## 优化特性

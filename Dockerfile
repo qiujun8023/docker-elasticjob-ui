@@ -3,10 +3,12 @@
 ARG UI_TYPE=lite
 
 # ========== Build Stage ==========
-FROM eclipse-temurin:8-jdk-alpine AS builder
+FROM eclipse-temurin:8-jdk AS builder
 
 # Install build dependencies
-RUN apk add --no-cache wget tar jq nodejs npm maven
+RUN apt-get update && \
+    apt-get install -y wget curl jq nodejs npm maven && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /build
@@ -28,7 +30,7 @@ RUN cd shardingsphere-elasticjob-ui-distribution/shardingsphere-elasticjob-${UI_
     mv apache-shardingsphere-*-shardingsphere-elasticjob-${UI_TYPE}-ui-bin /app
 
 # ========== Runtime Stage ==========
-FROM eclipse-temurin:8-jre-alpine
+FROM eclipse-temurin:8-jre
 
 # Metadata labels
 LABEL maintainer="ElasticJob UI" \
@@ -38,15 +40,17 @@ LABEL maintainer="ElasticJob UI" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 # Install curl for health check
-RUN apk add --no-cache curl
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Accept UI type argument and convert to environment variable for runtime
 ARG UI_TYPE
 ENV UI_TYPE=${UI_TYPE}
 
 # Create non-root user
-RUN addgroup -g 1000 elasticjob && \
-    adduser -D -u 1000 -G elasticjob elasticjob
+RUN groupadd -g 1000 elasticjob && \
+    useradd -u 1000 -g elasticjob -s /bin/bash -m elasticjob
 
 # Set working directory
 WORKDIR /opt/elasticjob-ui
