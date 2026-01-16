@@ -57,14 +57,22 @@ jobs:
       - name: Extract Lite UI artifacts
         run: |
           cd shardingsphere-elasticjob-ui-distribution/shardingsphere-elasticjob-lite-ui-bin-distribution/target
-          tar -xzf apache-shardingsphere-*-shardingsphere-elasticjob-lite-ui-bin.tar.gz
-          mv apache-shardingsphere-*-shardingsphere-elasticjob-lite-ui-bin ../../../elasticjob-lite-ui
+          ls -la
+          LITE_TAR=$(ls apache-shardingsphere-*-shardingsphere-elasticjob-lite-ui-bin.tar.gz)
+          echo "Found Lite UI tarball: $LITE_TAR"
+          tar -xzf "$LITE_TAR"
+          LITE_DIR=$(ls -d apache-shardingsphere-*-shardingsphere-elasticjob-lite-ui-bin)
+          mv "$LITE_DIR" ../../../elasticjob-lite-ui
 
       - name: Extract Cloud UI artifacts
         run: |
           cd shardingsphere-elasticjob-ui-distribution/shardingsphere-elasticjob-cloud-ui-bin-distribution/target
-          tar -xzf apache-shardingsphere-*-shardingsphere-elasticjob-cloud-ui-bin.tar.gz
-          mv apache-shardingsphere-*-shardingsphere-elasticjob-cloud-ui-bin ../../../elasticjob-cloud-ui
+          ls -la
+          CLOUD_TAR=$(ls apache-shardingsphere-*-shardingsphere-elasticjob-cloud-ui-bin.tar.gz)
+          echo "Found Cloud UI tarball: $CLOUD_TAR"
+          tar -xzf "$CLOUD_TAR"
+          CLOUD_DIR=$(ls -d apache-shardingsphere-*-shardingsphere-elasticjob-cloud-ui-bin)
+          mv "$CLOUD_DIR" ../../../elasticjob-cloud-ui
 
       - name: Upload Lite UI artifacts
         uses: actions/upload-artifact@v4
