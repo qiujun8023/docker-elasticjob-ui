@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   elasticjob-lite-ui:
     image: qiujun8023/elasticjob-ui:lite-latest
