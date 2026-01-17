@@ -4,6 +4,9 @@ services:
   elasticjob-lite-ui:
     image: qiujun8023/elasticjob-ui:lite-latest
     container_name: elasticjob-lite-ui
+    restart: unless-stopped
+    networks:
+      - elasticjob
     ports:
       - "8088:8088"
     # Optional: Override default credentials
@@ -11,35 +14,32 @@ services:
     #   - AUTH_USERNAME=admin
     #   - AUTH_PASSWORD=your-secure-password
     #   - JAVA_OPTS=-server -Xmx1g -Xms512m -XX:+UseG1GC
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8088/"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 40s
-    networks:
-      - elasticjob
 
   # Uncomment to run Cloud UI (on different port)
   # elasticjob-cloud-ui:
   #   image: qiujun8023/elasticjob-ui:cloud-latest
   #   container_name: elasticjob-cloud-ui
+  #   restart: unless-stopped
+  #   networks:
+  #     - elasticjob
   #   ports:
   #     - "8089:8088"
   #   environment:
   #     - ZK_SERVERS=your-zookeeper:2181
   #     - AUTH_USERNAME=admin
   #     - AUTH_PASSWORD=your-secure-password
-  #   restart: unless-stopped
   #   healthcheck:
   #     test: ["CMD", "curl", "-f", "http://localhost:8088/"]
   #     interval: 30s
   #     timeout: 3s
   #     retries: 3
   #     start_period: 40s
-  #   networks:
-  #     - elasticjob
 
 networks:
   elasticjob:

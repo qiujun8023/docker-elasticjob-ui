@@ -1,7 +1,6 @@
 # Git
 .git
 .gitignore
-.gitattributes
 
 # GitHub
 .github
@@ -16,45 +15,10 @@
 # macOS
 .DS_Store
 
-# Source code directory (if cloned locally)
-shardingsphere-elasticjob-ui/
-
-# Build artifacts
-target/
-build/
-dist/
-out/
-
-# Maven
-pom.xml
-.mvn/
-mvnw
-mvnw.cmd
-
 # Logs
 *.log
-logs/
+logs
 
 # Temporary files
 *.tmp
-*.temp
-tmp/
-temp/
-
-# Node modules (from source build)
-node_modules/
-npm-debug.log*
-package.json
-package-lock.json
-
-# Documentation
-*.md
-docs/
-
-# Env files
-.env
-.env.local
-
-# Downloaded source tarballs
-*.tar.gz
-*.zip
+tmp

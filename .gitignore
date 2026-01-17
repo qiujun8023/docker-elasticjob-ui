@@ -1,10 +1,10 @@
 # Git
 .git/
 
-# Cloned repository (legacy, no longer used with multi-stage build)
+# Build artifacts (prepared by GitHub Actions)
 shardingsphere-elasticjob-ui/
-
-# Build artifacts
+elasticjob-lite-ui/
+elasticjob-cloud-ui/
 target/
 build/
 dist/

@@ -21,6 +21,10 @@ jobs:
         id: version
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/apache/shardingsphere-elasticjob-ui/releases/latest | jq -r '.tag_name')
+          if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+            echo "Failed to fetch latest version from GitHub API"
+            exit 1
+          fi
           echo "Latest version: $LATEST_TAG"
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
