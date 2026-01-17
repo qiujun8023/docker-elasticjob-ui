@@ -2,13 +2,14 @@ version: '3.8'
 
 services:
   elasticjob-lite-ui:
-    # Replace 'your-dockerhub-username' with your actual Docker Hub username
-    image: your-dockerhub-username/elasticjob-ui:lite-latest
+    image: qiujun8023/elasticjob-ui:lite-latest
     container_name: elasticjob-lite-ui
     ports:
       - "8088:8088"
-    # Optional: Override default JVM settings if needed
+    # Optional: Override default credentials
     # environment:
+    #   - AUTH_USERNAME=admin
+    #   - AUTH_PASSWORD=your-secure-password
     #   - JAVA_OPTS=-server -Xmx1g -Xms512m -XX:+UseG1GC
     restart: unless-stopped
     healthcheck:
@@ -22,10 +23,14 @@ services:
 
   # Uncomment to run Cloud UI (on different port)
   # elasticjob-cloud-ui:
-  #   image: your-dockerhub-username/elasticjob-ui:cloud-latest
+  #   image: qiujun8023/elasticjob-ui:cloud-latest
   #   container_name: elasticjob-cloud-ui
   #   ports:
   #     - "8089:8088"
+  #   environment:
+  #     - ZK_SERVERS=your-zookeeper:2181
+  #     - AUTH_USERNAME=admin
+  #     - AUTH_PASSWORD=your-secure-password
   #   restart: unless-stopped
   #   healthcheck:
   #     test: ["CMD", "curl", "-f", "http://localhost:8088/"]
