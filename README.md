@@ -95,15 +95,90 @@ docker compose up -d
 
 浏览器访问: `http://localhost:8088`
 
+**默认登录凭据：**
+- 用户名：`root`
+- 密码：`root`
+
+⚠️ **安全提示**：生产环境请务必修改默认密码（见下方环境变量配置）！
+
 ## 环境变量配置
 
-可以通过环境变量自定义 JVM 参数：
+ElasticJob UI 基于 Spring Boot 构建，支持通过环境变量覆盖 `application.properties` 中的配置。
+
+### 通用配置（Lite 和 Cloud 都支持）
+
+| 环境变量 | 默认值 | 说明 |
+|---------|-------|------|
+| `SERVER_PORT` | `8088` | Web 服务端口 |
+| `AUTH_USERNAME` | `root` | 登录用户名 |
+| `AUTH_PASSWORD` | `root` | 登录密码 |
+| `AUTH_TOKEN_EXPIRES_AFTER_SECONDS` | `3600` | Token 过期时间（秒） |
+
+### Lite UI 特有配置
+
+| 环境变量 | 默认值 | 说明 |
+|---------|-------|------|
+| `SPRING_DATASOURCE_DEFAULT_DRIVER_CLASS_NAME` | `org.h2.Driver` | 数据库驱动 |
+| `SPRING_DATASOURCE_DEFAULT_URL` | `jdbc:h2:mem:` | 数据库连接 URL |
+| `SPRING_DATASOURCE_DEFAULT_USERNAME` | `sa` | 数据库用户名 |
+| `SPRING_DATASOURCE_DEFAULT_PASSWORD` | （空） | 数据库密码 |
+| `SPRING_JPA_SHOW_SQL` | `false` | 是否显示 SQL 日志 |
+
+### Cloud UI 特有配置
+
+| 环境变量 | 默认值 | 说明 |
+|---------|-------|------|
+| `ZK_SERVERS` | `127.0.0.1:2181` | ZooKeeper 服务器地址 |
+| `ZK_NAMESPACE` | `elasticjob-cloud` | ZooKeeper 命名空间 |
+| `ZK_DIGEST` | （空） | ZooKeeper 认证摘要 |
+| `JOB_STATE_QUEUE_SIZE` | `10000` | 任务状态队列最大大小 |
+
+### 自定义 JVM 参数
 
 ```bash
 docker run -d \
   --name elasticjob-lite-ui \
   -p 8088:8088 \
   -e JAVA_OPTS="-server -Xmx1g -Xms512m -XX:+UseG1GC" \
+  <your-dockerhub-username>/elasticjob-ui:lite-latest
+```
+
+### 使用示例
+
+#### 修改登录密码（推荐用于生产环境）
+
+```bash
+docker run -d \
+  --name elasticjob-lite-ui \
+  -p 8088:8088 \
+  -e AUTH_USERNAME=admin \
+  -e AUTH_PASSWORD=your-secure-password \
+  <your-dockerhub-username>/elasticjob-ui:lite-latest
+```
+
+#### Cloud UI 连接 ZooKeeper
+
+```bash
+docker run -d \
+  --name elasticjob-cloud-ui \
+  -p 8088:8088 \
+  -e AUTH_USERNAME=admin \
+  -e AUTH_PASSWORD=your-secure-password \
+  -e ZK_SERVERS=zk1:2181,zk2:2181,zk3:2181 \
+  -e ZK_NAMESPACE=my-elasticjob \
+  <your-dockerhub-username>/elasticjob-ui:cloud-latest
+```
+
+#### Lite UI 使用外部 MySQL 数据库
+
+```bash
+docker run -d \
+  --name elasticjob-lite-ui \
+  -p 8088:8088 \
+  -e SPRING_DATASOURCE_DEFAULT_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver \
+  -e SPRING_DATASOURCE_DEFAULT_URL=jdbc:mysql://mysql-host:3306/elasticjob \
+  -e SPRING_DATASOURCE_DEFAULT_USERNAME=elasticjob \
+  -e SPRING_DATASOURCE_DEFAULT_PASSWORD=db-password \
   <your-dockerhub-username>/elasticjob-ui:lite-latest
 ```
 
