@@ -8,7 +8,7 @@ ElasticJob UI includes two management consoles:
 - **Lite UI**: Management interface for lightweight distributed scheduling
 - **Cloud UI**: Management interface for Mesos-based distributed scheduling
 
-This project automatically builds the latest Docker images via GitHub Actions and pushes them to Docker Hub.
+This project automatically builds the latest Docker images via GitHub Actions and pushes them to GitHub Container Registry.
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ This project automatically builds the latest Docker images via GitHub Actions an
 docker run -d \
   --name elasticjob-lite-ui \
   -p 8088:8088 \
-  qiujun8023/elasticjob-ui:lite-latest
+  ghcr.io/qiujun8023/elasticjob-ui:lite-latest
 ```
 
 ### ElasticJob Cloud UI
@@ -28,7 +28,7 @@ docker run -d \
   --name elasticjob-cloud-ui \
   -p 8088:8088 \
   -e ZK_SERVERS=your-zookeeper:2181 \
-  qiujun8023/elasticjob-ui:cloud-latest
+  ghcr.io/qiujun8023/elasticjob-ui:cloud-latest
 ```
 
 ### Using Docker Compose
@@ -38,7 +38,7 @@ version: '3.8'
 
 services:
   elasticjob-lite-ui:
-    image: qiujun8023/elasticjob-ui:lite-latest
+    image: ghcr.io/qiujun8023/elasticjob-ui:lite-latest
     container_name: elasticjob-lite-ui
     ports:
       - "8088:8088"
@@ -105,7 +105,7 @@ docker run -d \
   -p 8088:8088 \
   -e AUTH_USERNAME=admin \
   -e AUTH_PASSWORD=StrongPassword123! \
-  qiujun8023/elasticjob-ui:lite-latest
+  ghcr.io/qiujun8023/elasticjob-ui:lite-latest
 ```
 
 ### Lite UI + MySQL Persistence
@@ -118,7 +118,7 @@ docker run -d \
   -e SPRING_DATASOURCE_DEFAULT_URL=jdbc:mysql://mysql:3306/elasticjob \
   -e SPRING_DATASOURCE_DEFAULT_USERNAME=elasticjob \
   -e SPRING_DATASOURCE_DEFAULT_PASSWORD=db-password \
-  qiujun8023/elasticjob-ui:lite-latest
+  ghcr.io/qiujun8023/elasticjob-ui:lite-latest
 ```
 
 ### Cloud UI + ZooKeeper Cluster
@@ -131,7 +131,7 @@ docker run -d \
   -e ZK_NAMESPACE=production \
   -e AUTH_USERNAME=admin \
   -e AUTH_PASSWORD=StrongPassword123! \
-  qiujun8023/elasticjob-ui:cloud-latest
+  ghcr.io/qiujun8023/elasticjob-ui:cloud-latest
 ```
 
 ### Custom JVM Options
@@ -141,20 +141,20 @@ docker run -d \
   --name elasticjob-lite-ui \
   -p 8088:8088 \
   -e JAVA_OPTS="-server -Xmx1g -Xms512m -XX:+UseG1GC" \
-  qiujun8023/elasticjob-ui:lite-latest
+  ghcr.io/qiujun8023/elasticjob-ui:lite-latest
 ```
 
 ## Image Tags
 
 ### Lite UI
 
-- `qiujun8023/elasticjob-ui:lite-latest` - Latest version
-- `qiujun8023/elasticjob-ui:lite-{version}` - Specific version (e.g. lite-3.0.2)
+- `ghcr.io/qiujun8023/elasticjob-ui:lite-latest` - Latest version
+- `ghcr.io/qiujun8023/elasticjob-ui:lite-{version}` - Specific version (e.g. lite-3.0.2)
 
 ### Cloud UI
 
-- `qiujun8023/elasticjob-ui:cloud-latest` - Latest version
-- `qiujun8023/elasticjob-ui:cloud-{version}` - Specific version (e.g. cloud-3.0.2)
+- `ghcr.io/qiujun8023/elasticjob-ui:cloud-latest` - Latest version
+- `ghcr.io/qiujun8023/elasticjob-ui:cloud-{version}` - Specific version (e.g. cloud-3.0.2)
 
 ## Supported Architectures
 

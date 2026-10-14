@@ -1,6 +1,6 @@
 services:
   elasticjob-lite-ui:
-    image: qiujun8023/elasticjob-ui:lite-latest
+    image: ghcr.io/qiujun8023/elasticjob-ui:lite-latest
     container_name: elasticjob-lite-ui
     restart: unless-stopped
     networks:
@@ -21,7 +21,7 @@ services:
 
   # Uncomment to run Cloud UI (on different port)
   # elasticjob-cloud-ui:
-  #   image: qiujun8023/elasticjob-ui:cloud-latest
+  #   image: ghcr.io/qiujun8023/elasticjob-ui:cloud-latest
   #   container_name: elasticjob-cloud-ui
   #   restart: unless-stopped
   #   networks:

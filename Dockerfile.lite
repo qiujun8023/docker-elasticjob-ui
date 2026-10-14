@@ -3,13 +3,6 @@
 
 FROM eclipse-temurin:8-jre
 
-# Metadata labels
-LABEL maintainer="ElasticJob UI" \
-      org.opencontainers.image.title="ElasticJob Lite UI" \
-      org.opencontainers.image.description="Management console for Apache ShardingSphere ElasticJob Lite" \
-      org.opencontainers.image.source="https://github.com/apache/shardingsphere-elasticjob-ui" \
-      org.opencontainers.image.licenses="Apache-2.0"
-
 # Install curl for health check
 RUN apt-get update && \
     apt-get install -y curl && \
