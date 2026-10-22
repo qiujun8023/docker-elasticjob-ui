@@ -1,4 +1,4 @@
-name: Build ElasticJob UI Docker Images
+name: Docker Publish
 
 on:
   workflow_dispatch:
