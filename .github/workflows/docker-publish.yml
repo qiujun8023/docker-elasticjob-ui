@@ -9,6 +9,8 @@ env:
 
 jobs:
   build-artifacts:
+    # 手动触发只允许默认分支
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
